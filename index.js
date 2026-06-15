@@ -109,7 +109,7 @@ app.post('/api/leads', async (req, res, next) => {
     }
 
     // Parameterized query to prevent SQL injection
-    const query = `INSERT INTO leads (client_name, business_name, insta_handle, whatsapp) VALUES (?, ?, ?, ?)`;
+    const query = `INSERT INTO leads (client_name, business_name, insta_handle, whatsapp, created_at) VALUES (?, ?, ?, ?, CONVERT_TZ(NOW(), '+00:00', '+05:30'))`;
     const [result] = await pool.execute(query, [
       client_name,
       business_name,
