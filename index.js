@@ -78,7 +78,7 @@ async function sendLeadNotification(lead) {
               <td style="padding: 12px; font-weight: bold;">${lead.whatsapp}</td>
             </tr>
           </table>
-          <p style="margin-top: 24px; color: #6b7280; font-size: 12px;">Received at ${new Date().toLocaleString()}</p>
+          <p style="margin-top: 24px; color: #6b7280; font-size: 12px;">Received at ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</p>
         </div>
       `,
     }),
