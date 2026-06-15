@@ -113,11 +113,13 @@ app.post('/api/leads', async (req, res, next) => {
       insta_handle,
       whatsapp,
     ]);
-
+console.log("now trying send email")
     // Send email notification
     try {
       await sendLeadNotification({ client_name, business_name, insta_handle, whatsapp });
+      console.log("email send")
     } catch (emailErr) {
+      console.log("email send failed")
       console.error('Email notification failed:', emailErr.message);
       // Don't fail the request if email fails
     }
@@ -149,4 +151,5 @@ app.use((err, req, res, next) => {
 // Start Server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Shift Dev Web Solutions API running on http://localhost:${PORT}`);
+  console.log("changes updated")
 });
