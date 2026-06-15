@@ -1,10 +1,10 @@
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
+const fetch = require('node-fetch');
 const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql2/promise');
-const nodemailer = require('nodemailer');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -41,50 +41,49 @@ pool.getConnection()
 
 
 
-// Nodemailer Transporter
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: process.env.SMTP_PORT || 587,
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
-
-// Helper: Send notification email
+// Email: Send notification via Resend HTTP API (works on Render - no SMTP needed)
 async function sendLeadNotification(lead) {
-  const mailOptions = {
-    from: `"Shift-Dev Web Solutions" <${process.env.SMTP_USER}>`,
-    to: process.env.NOTIFY_EMAIL || 'rohitkadu2016@gmail.com',
-    subject: `🚀 New Lead: ${lead.business_name}`,
-    html: `
-      <div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; background: #1a1a2e; color: #e0e0e0; padding: 32px; border-radius: 12px;">
-        <h1 style="color: #a78bfa; margin-bottom: 24px;">New Lead Received!</h1>
-        <table style="width: 100%; border-collapse: collapse;">
-          <tr>
-            <td style="padding: 12px; border-bottom: 1px solid #333; color: #9ca3af;">Client Name</td>
-            <td style="padding: 12px; border-bottom: 1px solid #333; font-weight: bold;">${lead.client_name}</td>
-          </tr>
-          <tr>
-            <td style="padding: 12px; border-bottom: 1px solid #333; color: #9ca3af;">Business Name</td>
-            <td style="padding: 12px; border-bottom: 1px solid #333; font-weight: bold;">${lead.business_name}</td>
-          </tr>
-          <tr>
-            <td style="padding: 12px; border-bottom: 1px solid #333; color: #9ca3af;">Instagram</td>
-            <td style="padding: 12px; border-bottom: 1px solid #333; font-weight: bold;">@${lead.insta_handle}</td>
-          </tr>
-          <tr>
-            <td style="padding: 12px; color: #9ca3af;">WhatsApp</td>
-            <td style="padding: 12px; font-weight: bold;">${lead.whatsapp}</td>
-          </tr>
-        </table>
-        <p style="margin-top: 24px; color: #6b7280; font-size: 12px;">Received at ${new Date().toLocaleString()}</p>
-      </div>
-    `,
-  };
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+    },
+    body: JSON.stringify({
+      from: process.env.EMAIL_FROM || 'Shift-Dev <onboarding@resend.dev>',
+      to: [process.env.NOTIFY_EMAIL || 'rohitkadu2016@gmail.com'],
+      subject: `🚀 New Lead: ${lead.business_name}`,
+      html: `
+        <div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; background: #1a1a2e; color: #e0e0e0; padding: 32px; border-radius: 12px;">
+          <h1 style="color: #a78bfa; margin-bottom: 24px;">New Lead Received!</h1>
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 12px; border-bottom: 1px solid #333; color: #9ca3af;">Client Name</td>
+              <td style="padding: 12px; border-bottom: 1px solid #333; font-weight: bold;">${lead.client_name}</td>
+            </tr>
+            <tr>
+              <td style="padding: 12px; border-bottom: 1px solid #333; color: #9ca3af;">Business Name</td>
+              <td style="padding: 12px; border-bottom: 1px solid #333; font-weight: bold;">${lead.business_name}</td>
+            </tr>
+            <tr>
+              <td style="padding: 12px; border-bottom: 1px solid #333; color: #9ca3af;">Instagram</td>
+              <td style="padding: 12px; border-bottom: 1px solid #333; font-weight: bold;">@${lead.insta_handle}</td>
+            </tr>
+            <tr>
+              <td style="padding: 12px; color: #9ca3af;">WhatsApp</td>
+              <td style="padding: 12px; font-weight: bold;">${lead.whatsapp}</td>
+            </tr>
+          </table>
+          <p style="margin-top: 24px; color: #6b7280; font-size: 12px;">Received at ${new Date().toLocaleString()}</p>
+        </div>
+      `,
+    }),
+  });
 
-  await transporter.sendMail(mailOptions);
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.message || 'Resend API error');
+  }
 }
 
 // Routes
