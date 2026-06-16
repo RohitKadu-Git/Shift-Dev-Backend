@@ -119,7 +119,7 @@ Key info about Site Formers:
 - We integrate AI chatbots, AI order takers, AI customer support bots into websites
 - Pricing: Starter ₹4,999, Business ₹9,999, Enterprise ₹19,999+
 - We serve restaurants, gyms, salons, real estate, e-commerce, and more
-- Contact: WhatsApp +91 93073 91559
+- Contact: WhatsApp +91 7620361889
 - We offer free mockups before starting
 
 Be helpful, concise, and professional. If asked about unrelated topics, politely redirect to our services. Keep responses short (2-4 sentences max unless detail is needed). Use emojis sparingly.`;
@@ -281,7 +281,6 @@ app.post('/api/leads', async (req, res, next) => {
       await sendLeadNotification({ client_name, business_name, insta_handle, whatsapp });
     } catch (emailErr) {
       console.error('Email notification failed:', emailErr.message);
-      // Don't fail the request if email fails
     }
 
     res.status(201).json({
