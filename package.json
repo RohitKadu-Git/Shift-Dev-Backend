@@ -1,7 +1,7 @@
 {
-  "name": "shift-dev-web-solutions-server",
+  "name": "site-formers-server",
   "version": "1.0.0",
-  "description": "Backend API for Shift Dev Web Solutions",
+  "description": "Backend API for Site Formers",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
