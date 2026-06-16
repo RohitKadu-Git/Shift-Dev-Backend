@@ -1,6 +1,7 @@
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const fetch = require('node-fetch');
 const express = require('express');
 const cors = require('cors');
@@ -54,8 +55,8 @@ async function sendLeadNotification(lead) {
       'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
     },
     body: JSON.stringify({
-      from: process.env.EMAIL_FROM || 'Site Formers <onboarding@resend.dev>',
-      to: [process.env.NOTIFY_EMAIL || 'rohitkadu2016@gmail.com'],
+      from: process.env.EMAIL_FROM || 'Site Former <onboarding@resend.dev>',
+      to: [process.env.NOTIFY_EMAIL || 'siteformers@gmail.com'],
       subject: `🚀 New Lead: ${lead.business_name}`,
       html: `
         <div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; background: #1a1a2e; color: #e0e0e0; padding: 32px; border-radius: 12px;">
@@ -96,7 +97,7 @@ async function sendLeadNotification(lead) {
 
 // Routes
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Site Formers API is running' });
+  res.json({ status: 'ok', message: 'Site Former API is running' });
 });
 
 // POST /api/generate-demo - Generate a demo landing page using AI
@@ -127,6 +128,20 @@ Instructions:
 - Choose a primary color that reflects their industry (restaurants=warm, tech=blue, health=green, luxury=gold/dark, etc.)
 - Descriptions should be detailed enough to feel real, not generic
 - Think about what their customers actually care about
+- For ALL images, use Pexels direct image URLs in the format: https://images.pexels.com/photos/{ID}/pexels-photo-{ID}.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop
+- Use these REAL Pexels photo IDs based on business type:
+  * Restaurant/Food: 1640777, 958545, 1267320, 1579739, 376464, 70497
+  * Gym/Fitness: 1954524, 841130, 2294361, 3253501, 1552242, 2261477
+  * Salon/Spa: 3993449, 3997993, 3738355, 3985329, 3764568, 457701
+  * Real Estate: 106399, 1396122, 323780, 1115804, 2102587, 271816
+  * Tech/Software: 546819, 3861969, 1714208, 574071, 1181467, 3183153
+  * E-commerce/Retail: 5632402, 3965545, 5650026, 934070, 1714208, 3184338
+  * Automotive/Cars: 3752169, 3802510, 1149137, 3874337, 810357, 707046
+  * Education: 5212345, 4145153, 256395, 159844, 301926, 5905709
+  * Healthcare/Medical: 4386467, 3259629, 3825586, 4021775, 3376790, 5215024
+  * Coffee/Cafe: 302899, 312418, 1695052, 1024359, 894695, 1813466
+  * Hotel/Hospitality: 258154, 189296, 261102, 271624, 164595, 2869215
+  * General/Other: 3184291, 3183153, 574071, 1714208, 546819, 3861969
 
 Return ONLY valid JSON with this structure:
 {
@@ -150,6 +165,7 @@ Return ONLY valid JSON with this structure:
   ],
   "ctaText": "action-oriented button text (2-5 words)",
   "aboutText": "A professional 2-3 sentence about section describing the business mission and what makes them different",
+  "portfolioDescription": "A 1-2 sentence description written from the developer's perspective about what was built — mention the tech stack, key features integrated, and functionality delivered (e.g. 'Custom furniture catalog with advanced filtering, quotation request system, WhatsApp integration & mobile-responsive design.')",
   "testimonials": [
     { "text": "realistic detailed testimonial quote (2-3 sentences)", "author": "Realistic Indian Name", "role": "Role/Business", "rating": 5 },
     { "text": "another genuine testimonial", "author": "Realistic Indian Name", "role": "Role/Business", "rating": 5 }
@@ -164,14 +180,24 @@ Return ONLY valid JSON with this structure:
     { "question": "common customer question", "answer": "helpful detailed answer" },
     { "question": "common customer question", "answer": "helpful detailed answer" }
   ],
-  "heroImage": "a single relevant Unsplash search keyword for the hero background (e.g. restaurant, gym, salon, office, technology)",
+  "heroImage": "Pexels direct URL using a relevant photo ID from the list above, format: https://images.pexels.com/photos/{ID}/pexels-photo-{ID}.jpeg?auto=compress&cs=tinysrgb&w=1600&h=900&fit=crop",
+  "coverImage": "a specific keyword for the portfolio cover that best represents this business",
+  "businessType": "one or two word category (e.g. Fitness, Spa, Restaurant, Real Estate, E-commerce, Healthcare, Education, Automotive, Salon, Cafe, Hotel, Bakery, Tech, etc.)",
+  "coverImageUrl": "Pexels direct URL using a relevant photo ID, format: https://images.pexels.com/photos/{ID}/pexels-photo-{ID}.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
   "portfolio": [
-    { "title": "Project/Work title", "description": "short description of the work", "image": "unsplash search keyword for this work (e.g. website-design, interior, food-plating, fitness)" },
-    { "title": "Project/Work title", "description": "short description", "image": "unsplash keyword" },
-    { "title": "Project/Work title", "description": "short description", "image": "unsplash keyword" },
-    { "title": "Project/Work title", "description": "short description", "image": "unsplash keyword" }
+    { "title": "Project/Work title", "description": "short description of the work", "image": "Pexels direct URL with relevant photo ID" },
+    { "title": "Project/Work title", "description": "short description", "image": "Pexels direct URL" },
+    { "title": "Project/Work title", "description": "short description", "image": "Pexels direct URL" },
+    { "title": "Project/Work title", "description": "short description", "image": "Pexels direct URL" }
   ],
-  "galleryKeywords": ["keyword1", "keyword2", "keyword3", "keyword4", "keyword5", "keyword6"]
+  "galleryImages": [
+    "Pexels direct URL 1",
+    "Pexels direct URL 2",
+    "Pexels direct URL 3",
+    "Pexels direct URL 4",
+    "Pexels direct URL 5",
+    "Pexels direct URL 6"
+  ]
 }`;
 
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -183,7 +209,7 @@ Return ONLY valid JSON with this structure:
       body: JSON.stringify({
         model: 'llama-3.3-70b-versatile',
         messages: [
-          { role: 'system', content: 'You are an elite web design agency creative director. You create stunning, conversion-optimized landing page content. Return ONLY valid JSON. No markdown, no code blocks, no explanation. Think carefully about the business and create content that would genuinely impress the client.' },
+          { role: 'system', content: 'You are an elite web design agency creative director. You create stunning, conversion-optimized landing page content. Return ONLY valid JSON. No markdown, no code blocks, no explanation. Think carefully about the business and create content that would genuinely impress the client. For ALL image URLs, use Pexels direct image URLs in the format https://images.pexels.com/photos/{ID}/pexels-photo-{ID}.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop — ONLY use photo IDs from the list provided in the prompt. Never invent or guess photo IDs.' },
           { role: 'user', content: prompt }
         ],
         temperature: 0.8,
@@ -210,13 +236,57 @@ Return ONLY valid JSON with this structure:
       return res.status(500).json({ success: false, message: 'Failed to generate page content' });
     }
 
+    // Fetch relevant images from Pexels based on business type
+    try {
+      const pexelsKey = process.env.PEXELS_API_KEY;
+      if (pexelsKey) {
+        const searchQuery = `${business_description || ''} ${pageData.businessType || ''} ${business_name}`.trim();
+        const pexelsRes = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(searchQuery)}&per_page=15&orientation=landscape`, {
+          headers: { 'Authorization': pexelsKey }
+        });
+        const pexelsData = await pexelsRes.json();
+
+        if (pexelsData.photos && pexelsData.photos.length > 0) {
+          const photos = pexelsData.photos;
+
+          // Set hero image (largest)
+          pageData.heroImage = photos[0]?.src?.large2x || photos[0]?.src?.large;
+
+          // Set cover image
+          pageData.coverImageUrl = photos[1]?.src?.large || photos[0]?.src?.medium;
+
+          // Set portfolio images
+          if (pageData.portfolio && pageData.portfolio.length > 0) {
+            pageData.portfolio.forEach((item, i) => {
+              const photo = photos[(i + 2) % photos.length];
+              item.image = photo?.src?.medium || photo?.src?.small;
+            });
+          }
+
+          // Set gallery images
+          if (pageData.galleryImages && pageData.galleryImages.length > 0) {
+            pageData.galleryImages = pageData.galleryImages.map((_, i) => {
+              const photo = photos[(i + 6) % photos.length];
+              return photo?.src?.medium || photo?.src?.small;
+            });
+          }
+        }
+      }
+    } catch (pexelsErr) {
+      console.error('Pexels image fetch failed (using AI-generated URLs):', pexelsErr.message);
+    }
+
     // Store in database
     try {
+      const shareToken = crypto.randomBytes(16).toString('hex');
+      const businessType = pageData.businessType || '';
+      const coverImageUrl = pageData.coverImageUrl || `https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop`;
+      const aiDescription = pageData.portfolioDescription || pageData.aboutText || pageData.heroSubtext || business_description || '';
       await pool.execute(
-        `INSERT INTO generated_demos (client_name, business_name, business_description, page_data, created_at) VALUES (?, ?, ?, ?, CONVERT_TZ(NOW(), '+00:00', '+05:30'))`,
-        [client_name || '', business_name, business_description || '', JSON.stringify(pageData)]
+        `INSERT INTO generated_demos (share_token, client_name, business_name, business_description, business_type, cover_image, page_data, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, CONVERT_TZ(NOW(), '+00:00', '+05:30'))`,
+        [shareToken, client_name || '', business_name, aiDescription, businessType, coverImageUrl, JSON.stringify(pageData)]
       );
-      console.log('✅ Demo page stored for:', business_name);
+      console.log('✅ Demo page stored for:', business_name, '| Token:', shareToken);
     } catch (dbErr) {
       console.error('Demo store failed:', dbErr.message);
     }
@@ -228,10 +298,14 @@ Return ONLY valid JSON with this structure:
   }
 });
 
-// GET /api/demos - List all generated demos (admin only)
+// GET /api/demos - List all generated demos (protected)
 app.get('/api/demos', async (req, res) => {
   try {
-    const [rows] = await pool.execute('SELECT id, client_name, business_name, business_description, page_data, created_at FROM generated_demos ORDER BY created_at DESC');
+    const authHeader = req.headers.authorization;
+    if (!authHeader || authHeader !== `Bearer ${process.env.ADMIN_SECRET}`) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+    const [rows] = await pool.execute('SELECT id, share_token, client_name, business_name, business_description, business_type, cover_image, page_data, show_in_portfolio, created_at FROM generated_demos ORDER BY created_at DESC');
     res.json({ success: true, demos: rows });
   } catch (error) {
     console.error('Fetch demos error:', error.message);
@@ -239,9 +313,13 @@ app.get('/api/demos', async (req, res) => {
   }
 });
 
-// GET /api/demos/:id - Get a single demo
+// GET /api/demos/:id - Get a single demo (protected - admin)
 app.get('/api/demos/:id', async (req, res) => {
   try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || authHeader !== `Bearer ${process.env.ADMIN_SECRET}`) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
     const [rows] = await pool.execute('SELECT * FROM generated_demos WHERE id = ?', [req.params.id]);
     if (rows.length === 0) {
       return res.status(404).json({ success: false, message: 'Demo not found' });
@@ -249,6 +327,20 @@ app.get('/api/demos/:id', async (req, res) => {
     res.json({ success: true, demo: rows[0] });
   } catch (error) {
     console.error('Fetch demo error:', error.message);
+    res.status(500).json({ success: false, message: 'Failed to fetch demo' });
+  }
+});
+
+// GET /api/preview/:token - Public demo preview (shareable with clients)
+app.get('/api/preview/:token', async (req, res) => {
+  try {
+    const [rows] = await pool.execute('SELECT business_name, page_data FROM generated_demos WHERE share_token = ?', [req.params.token]);
+    if (rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Demo not found' });
+    }
+    res.json({ success: true, demo: rows[0] });
+  } catch (error) {
+    console.error('Fetch preview error:', error.message);
     res.status(500).json({ success: false, message: 'Failed to fetch demo' });
   }
 });
@@ -270,9 +362,9 @@ app.post('/api/chat', async (req, res) => {
     // Get user IP
     const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
 
-    const systemPrompt = `You are the AI assistant for "Site Formers" — a web development agency that builds high-performance websites, AI chatbots, and digital solutions for businesses. 
+    const systemPrompt = `You are the AI assistant for "Site Former" — a web development agency that builds high-performance websites, AI chatbots, and digital solutions for businesses. 
 
-Key info about Site Formers:
+Key info about Site Former:
 - We build websites in 48 hours using React, Node.js, and modern tech
 - We integrate AI chatbots, AI order takers, AI customer support bots into websites
 - Pricing: Starter ₹4,999, Business ₹9,999, Enterprise ₹19,999+
@@ -343,8 +435,8 @@ Be helpful, concise, and professional. If asked about unrelated topics, politely
             'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
           },
           body: JSON.stringify({
-            from: process.env.EMAIL_FROM || 'Site Formers <onboarding@resend.dev>',
-            to: [process.env.NOTIFY_EMAIL || 'rohitkadu2016@gmail.com'],
+            from: process.env.EMAIL_FROM || 'Site Former <onboarding@resend.dev>',
+            to: [process.env.NOTIFY_EMAIL || 'siteformers@gmail.com'],
             subject: `New Chatbot Visitor: ${message.slice(0, 50)}`,
             html: `
               <div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; background: #1a1a2e; color: #e0e0e0; padding: 32px; border-radius: 12px;">
@@ -452,6 +544,33 @@ app.post('/api/leads', async (req, res, next) => {
   }
 });
 
+// PUT /api/demos/:id/portfolio - Toggle portfolio visibility (protected)
+app.put('/api/demos/:id/portfolio', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || authHeader !== `Bearer ${process.env.ADMIN_SECRET}`) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+    const { show_in_portfolio } = req.body;
+    await pool.execute('UPDATE generated_demos SET show_in_portfolio = ? WHERE id = ?', [show_in_portfolio ? 1 : 0, req.params.id]);
+    res.json({ success: true, message: show_in_portfolio ? 'Added to portfolio' : 'Removed from portfolio' });
+  } catch (error) {
+    console.error('Toggle portfolio error:', error.message);
+    res.status(500).json({ success: false, message: 'Failed to update' });
+  }
+});
+
+// GET /api/portfolio-demos - Public: get demos marked for portfolio
+app.get('/api/portfolio-demos', async (req, res) => {
+  try {
+    const [rows] = await pool.execute('SELECT id, share_token, business_name, business_description, business_type, cover_image, page_data, created_at FROM generated_demos WHERE show_in_portfolio = 1 ORDER BY created_at DESC');
+    res.json({ success: true, demos: rows });
+  } catch (error) {
+    console.error('Fetch portfolio demos error:', error.message);
+    res.status(500).json({ success: false, message: 'Failed to fetch' });
+  }
+});
+
 // 404 Handler
 app.use((req, res) => {
   res.status(404).json({ success: false, message: 'Route not found' });
@@ -468,5 +587,5 @@ app.use((err, req, res, next) => {
 
 // Start Server
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Site Formers API running on http://localhost:${PORT}`);
+  console.log(`🚀 Site Former API running on http://localhost:${PORT}`);
 });

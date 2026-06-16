@@ -1,4 +1,4 @@
--- Site Formers - Database Schema
+-- Site Former - Database Schema
 -- Run this file to initialize the database and leads table
 
 CREATE DATABASE IF NOT EXISTS shift_dev_web_solutions;
@@ -25,9 +25,13 @@ CREATE TABLE IF NOT EXISTS chat_logs (
 
 CREATE TABLE IF NOT EXISTS generated_demos (
   id INT AUTO_INCREMENT PRIMARY KEY,
+  share_token VARCHAR(32) NOT NULL UNIQUE,
   client_name VARCHAR(255) DEFAULT '',
   business_name VARCHAR(255) NOT NULL,
   business_description TEXT DEFAULT NULL,
+  business_type VARCHAR(100) DEFAULT '',
+  cover_image TEXT DEFAULT NULL,
   page_data JSON NOT NULL,
+  show_in_portfolio TINYINT(1) DEFAULT 0,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

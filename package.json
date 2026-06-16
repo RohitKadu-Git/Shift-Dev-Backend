@@ -1,7 +1,7 @@
 {
-  "name": "site-formers-server",
+  "name": "site-former-server",
   "version": "1.0.0",
-  "description": "Backend API for Site Formers",
+  "description": "Backend API for Site Former",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
